@@ -85,7 +85,7 @@ if [ $USER_OPTION == '1' ] || [ $USER_OPTION == '2' ]; then
         WWW="Y"
 
 	WWW="continue"
-	while [ $WWW != "n" ] && [ $WWW != "y" ]; do
+	while [ $WWW != "n" ] && [ $WWW != "y" ] && [ $WWW != "N" ] && [ $WWW != "Y" ]; do
             echo -e "\n*** Are you going to additionally certify the domain with the prefix www? (y/n): "
             read WWW
         done
@@ -95,54 +95,63 @@ if [ $USER_OPTION == '1' ] || [ $USER_OPTION == '2' ]; then
 	DOMAIN_T=$(dig +short $ENV_T$DOMAIN_NAME)
 	DOMAIN_P=$(dig +short $ENV_P$DOMAIN_NAME)
 
-	IS_DNS_OK="y"
+	IS_DNS_OK="true"
 
 	echo -e "\n**************************************************************************"
 	echo "	                     CHECKING DNS IP      "
 	echo -e "**************************************************************************"
-
-	if [ "$DOMAIN_T" == "$SERVER_IP" ]; then
-		true
-	else
-		sleep 1
-		echo -e "\n*** $ENV_T$DOMAIN_NAME does not indicate proper ip adress ***\n*** Check your DNS ***\n "
-		IS_DNS_OK="n"
-	fi		
-
-	if [ "$DOMAIN_P" == "$SERVER_IP" ]; then
-		true
-	else
-		sleep 1
-		echo -e "\n*** $ENV_P$DOMAIN_NAME does not indicate proper ip adress ***\n*** Check your DNS ***\n "
-		IS_DNS_OK="n"		
-	fi
-			
-	if [ "$WWW" == "y" ] || [ $WWW == Y ]; then
-		DOMAIN_T=$(dig +short www.$ENV_T$DOMAIN_NAME)
-		DOMAIN_P=$(dig +short www.$ENV_P$DOMAIN_NAME)
-
+		
+	if [ $USER_OPTION == '1' ]; then
+	
 		if [ "$DOMAIN_T" == "$SERVER_IP" ]; then
 			true
-	
 		else
 			sleep 1
-			echo -e "\n*** www.$ENV_T$DOMAIN_NAME does not indicate proper ip adress ***\n*** Check your DNS ***\n "
-			IS_DNS_OK="n"			
-
-		fi 
+			echo -e "\n*** $ENV_T$DOMAIN_NAME does not indicate proper ip adress ***\n*** Check your DNS ***\n "
+			IS_DNS_OK="n"
+		fi		
 
 		if [ "$DOMAIN_P" == "$SERVER_IP" ]; then
 			true
-		
 		else
 			sleep 1
-			echo -e "\n*** www.$ENV_P$DOMAIN_NAME does not indicate proper ip adress ***\n*** Check your DNS ***\n "
-			IS_DNS_OK="n"
+			echo -e "\n*** $ENV_P$DOMAIN_NAME does not indicate proper ip adress ***\n*** Check your DNS ***\n "
+			IS_DNS_OK="n"		
+		fi
+			
+		if [ "$WWW" == "y" ] || [ $WWW == Y ]; then
+			DOMAIN_T=$(dig +short www.$ENV_T$DOMAIN_NAME)
+			DOMAIN_P=$(dig +short www.$ENV_P$DOMAIN_NAME)
+
+			if [ "$DOMAIN_T" == "$SERVER_IP" ]; then
+				true
 	
+			else
+				sleep 1
+				echo -e "\n*** www.$ENV_T$DOMAIN_NAME does not indicate proper ip adress ***\n*** Check your DNS ***\n "
+				IS_DNS_OK="n"			
+
+			fi 
+	
+			if [ "$DOMAIN_P" == "$SERVER_IP" ]; then
+				true
+		
+			else
+				sleep 1
+				echo -e "\n*** www.$ENV_P$DOMAIN_NAME does not indicate proper ip adress ***\n*** Check your DNS ***\n "
+				IS_DNS_OK="n"
+	
+			fi
+
 		fi
 
-	fi
+	elif [ $USER_OPTION == '2' ]; then
 
+			while [ $IS_DNS_OK != 'y' ] && [ $IS_DNS_OK != 'Y' ] && [ $IS_DNS_OK != 'n' ] && [ $IS_DNS_OK != 'N' ]; do
+				echo -e "\n*** Are you sure you have provided DNS management in Cloudflare for $DOMAIN_NAME? (y/n) ***"
+				read IS_DNS_OK
+			done
+	fi
 
 else
 	echo ""
@@ -150,7 +159,7 @@ else
 
 fi
 
-if [ $IS_DNS_OK == "n" ]; then
+if [ $IS_DNS_OK == "n" ] || [ $IS_DNS_OK == "N" ]; then
 	sleep 1
         echo -e "--------------------------------------------------------------------------------------------"
         echo -e "				*** EXITING SCRIPT ***"
@@ -180,44 +189,60 @@ elif [ $USER_OPTION == '2' ]; then
 	echo -e "\n**************************************************************************"
 	echo "	                CHECKING KEY.PEM AND CERT.PEM      "
 	echo -e "**************************************************************************"
-	    
-	sleep 1
-	echo -e "\n*** Are you sure adequate cloudflare cert.pem and key.pem are located in the same directory as script? (y/n): "
-	read PEM_VALIDATION
+	
+	PEM_VALIDATION="true"
+    
 	sleep 1
 
-	if [ -f ./cert.pem ] && [ -f ./key.pem ]; then
-    		echo -e "\n*** CERT.PEM AND KEY.PEM HAVE BEEN FOUND ***\n"
+	while [ $PEM_VALIDATION != 'y' ] && [ $PEM_VALIDATION != 'Y' ] && [ $PEM_VALIDATION != 'n' ] && [ $PEM_VALIDATION != 'N' ]; do
+		echo -e "\n*** Are you sure adequate cloudflare cert.pem and key.pem are located in the same directory as script? (y/n): "
+		read PEM_VALIDATION
+		sleep 1
+	done
+
+	if [ $PEM_VALIDATION == "n" ] || [ $PEM_VALIDATION == "N" ]; then
+		sleep 1
+        	echo -e "--------------------------------------------------------------------------------------------"
+        	echo -e "				*** EXITING SCRIPT ***"
+        	echo -e "--------------------------------------------------------------------------------------------\n"
+		sleep 1
+		exit
+
+	elif [ $PEM_VALIDATION == "y" ] || [ $PEM_VALIDATION == "Y" ]; then
+
+		if [ -f ./cert.pem ] && [ -f ./key.pem ]; then
+    			echo -e "\n*** CERT.PEM AND KEY.PEM HAVE BEEN FOUND ***\n"
 		
-		# cloudflare key.pem and cert.pem validation
-		grep -q "KEY" ./key.pem && CDN_KEY_VALID="y" || CDN_KEY_VALID="n" 
-		grep -q "CERTIFICATE" ./cert.pem && CDN_CERT_VALID="y" || CDN_CERT_VALID="n" 		
-    		sleep 1
+			# cloudflare key.pem and cert.pem validation
+			grep -q "KEY" ./key.pem && CDN_KEY_VALID="y" || CDN_KEY_VALID="n" 
+			grep -q "CERTIFICATE" ./cert.pem && CDN_CERT_VALID="y" || CDN_CERT_VALID="n" 		
+    			sleep 1
 
-	    	if [ $CDN_KEY_VALID == "y" ] && [ $CDN_CERT_VALID == "y" ]; then
-        		echo -e "*** BOTH PEM FILES ARE VAILD ***\n"
+	    		if [ $CDN_KEY_VALID == "y" ] && [ $CDN_CERT_VALID == "y" ]; then
+        			echo -e "*** BOTH PEM FILES ARE VAILD ***\n"
 
-	    	else
+	    		else
+        			echo -e "\n-------------------------------------------------------------------------------------------------"
+        			echo -e "				*** ERROR!!! ***"
+				echo -e "			*** PEM FILES ARE INVAILD ***"  
+        			echo -e "	*** CHECK KEY.PEM AND CERT.PEM DECLARATION FOR CLOUDFLARE CERTIFICATION FIRST ***" 
+        			echo -e "			     *** EXITING SCRIPT ***"
+        			echo -e "-------------------------------------------------------------------------------------------------\n"
+        			sleep 1
+        			exit
+    			fi
+
+		else
         		echo -e "\n-------------------------------------------------------------------------------------------------"
-        		echo -e "				*** ERROR!!! ***"
-			echo -e "			*** PEM FILES ARE INVAILD ***"  
-        		echo -e "	*** CHECK KEY.PEM AND CERT.PEM DECLARATION FOR CLOUDFLARE CERTIFICATION FIRST ***" 
-        		echo -e "			     *** EXITING SCRIPT ***"
+        		echo -e "					*** ERROR!!! ***"
+			echo -e "	*** CLOUDFLARE KEY.PEM AND CERT.PEM MUST BE UPLOADED IN THE SAME DIRECTORY AS SCRIPT ***"   
+        		echo -e "		*** UPLOAD KEY.PEM AND CERT.PEM FOR CLOUDFLARE CERTIFICATION FIRST ***" 
+        		echo -e "				     *** EXITING SCRIPT ***"
         		echo -e "-------------------------------------------------------------------------------------------------\n"
         		sleep 1
         		exit
     		fi
-
-	else
-        	echo -e "\n-------------------------------------------------------------------------------------------------"
-        	echo -e "					*** ERROR!!! ***"
-		echo -e "	*** CLOUDFLARE KEY.PEM AND CERT.PEM MUST BE UPLOADED IN THE SAME DIRECTORY AS SCRIPT ***"   
-        	echo -e "		*** UPLOAD KEY.PEM AND CERT.PEM FOR CLOUDFLARE CERTIFICATION FIRST ***" 
-        	echo -e "				     *** EXITING SCRIPT ***"
-        	echo -e "-------------------------------------------------------------------------------------------------\n"
-        	sleep 1
-        	exit
-    	fi
+	fi
 
 else
 	exit
@@ -245,7 +270,7 @@ if [ -d /etc/nginx/sites-available/ ]; then
 	echo -e "\n*** Input upstream name for domain that will follow upstream name in nginx website.conf ***\n*** Should be declared in format: _upstreamname: \n*** REMAIN BLANK FOR FIRST DOMAIN! ***\n " 
 	read UPSTREAM_NAME
 else
-	echo -e "\n*** No domains certified yet ***" 
+	echo -e "\n*** No domains added yet ***" 
 fi
 
 
