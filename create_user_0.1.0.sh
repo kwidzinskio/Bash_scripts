@@ -80,13 +80,14 @@ echo -e "                      LIST OF ALREADY CREATED USERS       "
 echo -e "**************************************************************************\n"
 
 # list all users
-if [ -d /home/*/ ]; then
+SUBDIRCOUNT=$(find /home/ -maxdepth 1 -type d | wc -l) 
+if [ "$SUBDIRCOUNT" -eq 1 ]; then
+	echo -e "*** No users created yet ***" 
+else
 	for i in $(ls -d /home/* ); do
         	sleep 0.5 
 		echo "${i:6}";
 	done
-else
-	echo -e "*** No users created yet ***" 
 fi
 
 
@@ -265,14 +266,16 @@ while [ $USER_OPTION != q ] && [ $USER_OPTION != Q ]; do
 	echo -e "                      LIST OF ALREADY CREATED USERS       "
 	echo -e "**************************************************************************\n"
 
-	if [ -d /home/*/ ]; then
-             for i in $(ls -d /home/* ); do
-        		sleep 0.5 
-			echo "${i:6}";
-	     done
+	SUBDIRCOUNT=$(find /home/ -maxdepth 1 -type d | wc -l) 
+	if [ "$SUBDIRCOUNT" -eq 1 ]; then
+		echo -e "*** No users created yet ***" 
 	else
-	     echo -e "*** No users created yet ***" 
+		for i in $(ls -d /home/* ); do
+        	sleep 0.5 
+		echo "${i:6}";
+	done
 	fi
+
 
     fi
   
