@@ -1,4 +1,4 @@
- #!/bin/bash
+#!/bin/bash
 
 #-----------------------------------------------------------------------------------------------------------
 #                                     Script functionality
@@ -38,26 +38,25 @@ UPDATE=y
 #                                              Script launch
 #-----------------------------------------------------------------------------------------------------------
 
-echo " "
-echo "=============================================================================="
+echo -e "\n=============================================================================="
 echo "                          Launch: ${SCRIPT_NAME}                "
 echo "                              version ${SCRIPT_VERSION}            "
 echo "                            $(date +"%Y.%m.%d %H:%M:%S")             "
 echo "                          Created by: ${SCRIPT_AUTHOR}            "
-echo "=============================================================================="
-echo " "
+echo -e "==============================================================================\n"
 
-echo  "**************************************************************************"
-echo  ">                             SERVER UPDATE                    "
-echo  "**************************************************************************"
-echo " "
+sleep 1
+
+echo "**************************************************************************"
+echo "                             SERVER UPDATE                    "
+echo -e "**************************************************************************\n"
 
 # server update
 while [ $UPDATE != n ] && [ $UPDATE != N ]; do
 
     read -p "Do you want to update UNIX packages? (y/n) " UPDATE
 
-    if [ "$UPDATE" == "y" ] || [ $UPDATE == Y ]  ; then
+    if [ $UPDATE == y ] || [ $UPDATE == Y ]  ; then
 	    sudo apt update -y && sudo apt-get update -y && sudo apt upgrade -y && sudo apt-get upgrade -y && sudo apt dist-upgrade -y && sudo apt-get dist-upgrade -y
             sudo apt-get autoremove -y
             UPDATE=n
@@ -134,7 +133,6 @@ if [ $USER_CHOICE != 0 ]; then
 
     elif [ $USER_CHOICE == 2 ]; then
 	
-
 	read -p "Input username (ex. kwidzinskio): " USERNAME
 	read -p "Input repo name (ex. Scrpits): " REPO_NAME
 	read -p "Input branch name: " BRANCH_NAME
