@@ -86,7 +86,7 @@ echo "                          Created by: ${SCRIPT_AUTHOR}            "
 echo -e "==============================================================================\n"
 
 echo -e "\n**************************************************************************"
-echo -e ">                              SERVER UPDATE                    "
+echo -e "                              SERVER UPDATE                    "
 echo -e "**************************************************************************\n"
 
 # server update
@@ -105,7 +105,7 @@ done
 sudo apt-get -y install mc 
 
 echo -e "\n**************************************************************************"
-echo -e ">	                           UPDATE LOCALE "
+echo -e "	                           UPDATE LOCALE "
 echo -e "**************************************************************************\n"
 
 sudo apt-get install locales
@@ -122,14 +122,14 @@ sleep 1
 #-----------------------------------------------------------------------------------------------------------
 
 echo -e "\n**************************************************************************"
-echo -e ">	                      INSTALL POSTRESQL SERVER "
+echo -e "	                      INSTALL POSTRESQL SERVER "
 echo -e "**************************************************************************\n"
 
 sudo apt-get install postgresql -y
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">                    CREATING THE ODOO POSTGRESQL USERS  "
+echo -e "                    CREATING THE ODOO POSTGRESQL USERS  "
 echo -e "**************************************************************************\n"
 
 sudo su - postgres -c "createuser -s $OE_P_USER" 2> /dev/null || true
@@ -137,21 +137,21 @@ sudo su - postgres -c "createuser -s $OE_T_USER" 2> /dev/null || true
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">	                INSTALLING PYTHON 3 + pip3 + virtualenv"
+echo -e "	                INSTALLING PYTHON 3 + pip3 + virtualenv"
 echo -e "**************************************************************************\n"
 
 sudo apt-get install -y python3 python3-pip python3-dev python3-venv python3-wheel python3-setuptools virtualenv libpq-dev zlib1g-dev libxslt-dev libxml2-dev libzip-dev libldap2-dev libsasl2-dev libjpeg-dev 
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">	                        INSTALL TOOL PACKAGES "
+echo -e "	                        INSTALL TOOL PACKAGES "
 echo -e "**************************************************************************\n"
 
 sudo apt-get install -y wget git bzr gdebi-core xz-utils fontconfig libfreetype6 libx11-6 libxext6 libxrender1 xfonts-75dpi
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">	                    INSTALL OTHER REQUIRED PACKAGES"
+echo -e "	                    INSTALL OTHER REQUIRED PACKAGES"
 echo -e "**************************************************************************\n"
 
 sudo apt-get install node-clean-css -y
@@ -163,7 +163,7 @@ sleep 1
 if [ $INSTALL_WKHTMLTOPDF = "True" ]; then
 
   echo -e "\n**************************************************************************"
-  echo -e ">	INSTALL WKHTML AND PLACE SHORTCUTS ON CORRECT PLACE FOR ODOO 15 "
+  echo -e "	INSTALL WKHTML AND PLACE SHORTCUTS ON CORRECT PLACE FOR ODOO 15 "
   echo -e "**************************************************************************\n"
 
   #pick up correct one from x64 & x32 versions:
@@ -191,7 +191,7 @@ fi
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">	                    CREATE ODOO SYSTEM USERS"
+echo -e "	                    CREATE ODOO SYSTEM USERS"
 echo -e "**************************************************************************\n"
 
 if grep "odoo:" /etc/passwd >/dev/null 2>&1; then
@@ -219,7 +219,7 @@ sudo adduser $OE_T_USER sudo
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">	                       CREATE LOG DIRECTORY "
+echo -e "	                       CREATE LOG DIRECTORY "
 echo -e "**************************************************************************\n"
 
 sudo mkdir /var/log/$OE_P_USER
@@ -245,11 +245,11 @@ fi
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">	                       INSTALL ODOO "
+echo -e "	                       INSTALL ODOO "
 echo -e "**************************************************************************\n"
 
 echo -e "**************************************************************************"
-echo -e ">	       CREATE ENVIRONMENT FOF $OE_P_USER  :: Git clonning ..."
+echo -e "	       CREATE ENVIRONMENT FOF $OE_P_USER  :: Git clonning ..."
 echo -e "**************************************************************************\n"
 
 sleep 1
@@ -292,7 +292,7 @@ fi
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">	        DUPLICATE ENVIRONMENT $OE_P_USER  ===> $OE_T_USER "
+echo -e "	        DUPLICATE ENVIRONMENT $OE_P_USER  ===> $OE_T_USER "
 echo -e "**************************************************************************\n"
 
 sudo cp -a $OE_P_HOME_EXT/. $OE_T_HOME_EXT/
@@ -303,7 +303,7 @@ fi
 sleep 1
 
 echo -e "**************************************************************************"
-echo -e ">	                CREATE CUSTOM MODULE DIRECTORY "
+echo -e "	                CREATE CUSTOM MODULE DIRECTORY "
 echo -e "**************************************************************************\n"
 
 sudo mkdir $OE_P_HOME/custom
@@ -315,7 +315,7 @@ sudo mkdir $OE_T_HOME/custom/addons
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">	  SETTING PERMISSIONS ON HOME FOLDERS :$OE_P_HOME and $OE_T_HOME "
+echo -e "	  SETTING PERMISSIONS ON HOME FOLDERS :$OE_P_HOME and $OE_T_HOME "
 echo -e "**************************************************************************\n"
 
 sudo chown -R $OE_P_USER:$OE_P_USER $OE_P_HOME
@@ -324,10 +324,12 @@ sudo chown -R $OE_T_USER:$OE_T_USER $OE_T_HOME
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">	     CREATE SERVER CONFIG FILE FOR $OE_P_USER user/service "
+echo -e "	     CREATE SERVER CONFIG FILE FOR $OE_P_USER user/service "
 echo -e "**************************************************************************\n"
 
-sudo rm /etc/${OE_P_CONFIG}.conf
+if [ -f /etc/${OE_P_CONFIG}.conf ]; then
+	sudo rm /etc/${OE_P_CONFIG}.conf
+fi
 sudo touch /etc/${OE_P_CONFIG}.conf
 
 sudo su root -c "printf '[options] \n; This is the password that allows database operations:\n' >> /etc/${OE_P_CONFIG}.conf"
@@ -353,10 +355,12 @@ sudo chmod 640 /etc/${OE_P_CONFIG}.conf
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">	     CREATE SERVER CONFIG FILE FOR $OE_T_USER user/service"
+echo -e "	     CREATE SERVER CONFIG FILE FOR $OE_T_USER user/service"
 echo -e "**************************************************************************\n"
 
-sudo rm /etc/${OE_T_CONFIG}.conf
+if [ -f /etc/${OE_T_CONFIG}.conf ]; then
+	sudo rm /etc/${OE_T_CONFIG}.conf
+fi
 sudo touch /etc/${OE_T_CONFIG}.conf
 
 sudo su root -c "printf '[options] \n; This is the password that allows database operations:\n' >> /etc/${OE_T_CONFIG}.conf"
@@ -380,8 +384,7 @@ sudo chmod 640 /etc/${OE_T_CONFIG}.conf
 sleep 1
 
 echo -e "\n**************************************************************************"
-#echo -e ">	Create python virtual environment ===> $OE_P_HOME_EXT/env_$OE_P_USER  "
-echo -e ">	CREATE PYTHON VIRTUAL ENVIRONMENT ===> $OE_P_HOME/env_$OE_P_USER  "
+echo -e "	CREATE PYTHON VIRTUAL ENVIRONMENT ===> $OE_P_HOME/env_$OE_P_USER  "
 echo -e "**************************************************************************\n"
 
 #sudo su $OE_P_USER -c "virtualenv -p python3 $OE_P_HOME_EXT/env_$OE_P_USER "
@@ -390,8 +393,8 @@ sudo su $OE_P_USER -c "virtualenv -p python3 $OE_P_HOME/env_$OE_P_USER "
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">	INSTALLING PYTHON PACKAGES USING PIP FROM : $OE_P_HOME_EXT/requirements.txt \n"
-echo -e ">	cd $OE_P_HOME/env_$OE_P_USER/bin && $OE_P_HOME/env_$OE_P_USER/bin/python pip3 install -r $OE_P_HOME_EXT/requirements.txt"
+echo -e "	INSTALLING PYTHON PACKAGES USING PIP FROM : $OE_P_HOME_EXT/requirements.txt \n"
+echo -e "	cd $OE_P_HOME/env_$OE_P_USER/bin && $OE_P_HOME/env_$OE_P_USER/bin/python pip3 install -r $OE_P_HOME_EXT/requirements.txt"
 echo -e "**************************************************************************\n"
 
 sudo su $OE_P_USER -c "cd $OE_P_HOME/env_$OE_P_USER/bin && $OE_P_HOME/env_$OE_P_USER/bin/python pip3 install -r $OE_P_HOME_EXT/requirements.txt"
@@ -399,15 +402,15 @@ sudo su $OE_P_USER -c "cd $OE_P_HOME/env_$OE_P_USER/bin && $OE_P_HOME/env_$OE_P_
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">	        INSTALLING MISSING PYTHON PACKAGES USING PIP "
+echo -e "	        INSTALLING MISSING PYTHON PACKAGES USING PIP "
 echo -e "**************************************************************************\n"
 
-sudo su $OE_P_USER -c "cd $OE_P_HOME/env_$OE_P_USER/bin && $OE_P_HOME/env_$OE_P_USER/bin/python pip3 install phonenumbers html2text paramiko "
+sudo su $OE_P_USER -c "cd $OE_P_HOME/env_$OE_P_USER/bin && $OE_P_HOME/env_$OE_P_USER/bin/python pip3 install pyopenssl==22.0.0 phonenumbers html2text paramiko "
 
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">	CREATE PYTHON VIRTUAL ENVIRONMENT ===> $OE_T_HOME/env_$OE_T_USER \n"
+echo -e "	CREATE PYTHON VIRTUAL ENVIRONMENT ===> $OE_T_HOME/env_$OE_T_USER \n"
 echo -e "**************************************************************************\n"
 
 sudo su $OE_T_USER -c "virtualenv -p python3 $OE_T_HOME/env_$OE_T_USER "
@@ -415,8 +418,8 @@ sudo su $OE_T_USER -c "virtualenv -p python3 $OE_T_HOME/env_$OE_T_USER "
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">	INSTALLING PYTHON PACKAGES USING PIP FROM : $OE_T_HOME_EXT/requirements.txt \n"
-echo -e ">	cd $OE_T_HOME/env_$OE_T_USER/bin && $OE_T_HOME/env_$OE_T_USER/bin/python pip3 install -r $OE_T_HOME_EXT/requirements.txt"
+echo -e "	INSTALLING PYTHON PACKAGES USING PIP FROM : $OE_T_HOME_EXT/requirements.txt \n"
+echo -e "	cd $OE_T_HOME/env_$OE_T_USER/bin && $OE_T_HOME/env_$OE_T_USER/bin/python pip3 install -r $OE_T_HOME_EXT/requirements.txt"
 echo -e "**************************************************************************\n"
 
 sudo su $OE_T_USER -c "cd $OE_T_HOME/env_$OE_T_USER/bin && $OE_T_HOME/env_$OE_T_USER/bin/python pip3 install -r $OE_T_HOME_EXT/requirements.txt"
@@ -424,30 +427,32 @@ sudo su $OE_T_USER -c "cd $OE_T_HOME/env_$OE_T_USER/bin && $OE_T_HOME/env_$OE_T_
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">	        INSTALLING MISSING PYTHON PACKAGES USING PIP "
+echo -e "	        INSTALLING MISSING PYTHON PACKAGES USING PIP "
 echo -e "**************************************************************************\n"
 
-sudo su $OE_T_USER -c "cd $OE_T_HOME/env_$OE_T_USER/bin && $OE_T_HOME/env_$OE_T_USER/bin/python pip3 install phonenumbers html2text paramiko"
+sudo su $OE_T_USER -c "cd $OE_T_HOME/env_$OE_T_USER/bin && $OE_T_HOME/env_$OE_T_USER/bin/python pip3 install pyopenssl==22.0.0 phonenumbers html2text paramiko"
 
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">	CREATING SERVICE CONFIG FILE FOR SERVICE: ${OE_P_CONFIG}.service"
+echo -e "	CREATING SERVICE CONFIG FILE FOR SERVICE: ${OE_P_CONFIG}.service"
 echo -e "**************************************************************************\n"
 
-sudo rm /lib/systemd/system/${OE_P_CONFIG}.service
+if [ -f /lib/systemd/system/${OE_P_CONFIG}.service ]; then
+	sudo rm /lib/systemd/system/${OE_P_CONFIG}.service
+fi
 sudo touch /lib/systemd/system/${OE_P_CONFIG}.service
 sudo su root -c "printf '[Unit] \nDescription = Odoo${OE_VERSION}-${OE_P_USER}  \n' >> /lib/systemd/system/${OE_P_CONFIG}.service"
 sudo su root -c "printf 'Requires=postgresql.service\nAfter=postgresql.service\n' >>  /lib/systemd/system/${OE_P_CONFIG}.service"
 sudo su root -c "printf '[Service] \nType=simple\nPermissionsStartOnly=true\nUser=${OE_P_USER}\nGroup=odoo\nSyslogIdentifier=Odoo${OE_VERSION}-${OE_P_USER}\n' >> /lib/systemd/system/${OE_P_CONFIG}.service"
 sudo su root -c "printf 'ExecStart=$OE_P_HOME/env_$OE_P_USER/bin/python3 $OE_P_HOME_EXT/odoo-bin -c /etc/${OE_P_CONFIG}.conf \n' >> /lib/systemd/system/${OE_P_CONFIG}.service"
-sudo su root -c "printf '[Install]\nWantedBy=multi-user.target\n' >> /lib/systemd/system/${OE_P_CONFIG}.service"
+sudo su root -c "printf '[Install]\nWantedBy=multi-user.target\n' >> /lib/systemd/system/${OE_P_CONFIG}.service"	 
 sudo chmod 640 /lib/systemd/system/${OE_P_CONFIG}.service
 
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e "> REGISTRATION SERVICE ===> ${OE_P_CONFIG}.service [file location : /lib/systemd/system/${OE_P_CONFIG}.service] "
+echo -e " REGISTRATION SERVICE ===> ${OE_P_CONFIG}.service [file location : /lib/systemd/system/${OE_P_CONFIG}.service] "
 echo -e "**************************************************************************\n"
 
 sudo systemctl enable ${OE_P_CONFIG}.service
@@ -456,16 +461,18 @@ sudo systemctl start ${OE_P_CONFIG}.service
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">	CREATING SERVICE CONFIG FILE FOR SERVICE: ${OE_T_CONFIG}.service"
+echo -e "	CREATING SERVICE CONFIG FILE FOR SERVICE: ${OE_T_CONFIG}.service"
 echo -e "**************************************************************************\n"
 
-sudo rm /lib/systemd/system/${OE_T_CONFIG}.service
+if [ -f /lib/systemd/system/${OE_T_CONFIG}.service ]; then
+	sudo rm /lib/systemd/system/${OE_T_CONFIG}.service
+fi
 sudo touch /lib/systemd/system/${OE_T_CONFIG}.service
 sudo su root -c "printf '[Unit] \nDescription = Odoo${OE_VERSION}-${OE_T_USER}  \n' >> /lib/systemd/system/${OE_T_CONFIG}.service"
 sudo su root -c "printf 'Requires=postgresql.service\nAfter=postgresql.service\n' >> /lib/systemd/system/${OE_T_CONFIG}.service"
 sudo su root -c "printf '[Service] \nType=simple\nPermissionsStartOnly=true\nUser=${OE_T_USER}\nGroup=odoo\nSyslogIdentifier=Odoo${OE_VERSION}-${OE_T_USER}\n' >> /lib/systemd/system/${OE_T_CONFIG}.service"
 sudo su root -c "printf 'ExecStart=$OE_T_HOME/env_$OE_T_USER/bin/python3 $OE_T_HOME_EXT/odoo-bin -c /etc/${OE_T_CONFIG}.conf \n' >> /lib/systemd/system/${OE_T_CONFIG}.service"
-sudo su root -c "printf '[Install]\nWantedBy=multi-user.target\n' >> /lib/systemd/system/${OE_T_CONFIG}.service"
+sudo su root -c "printf '[Install]\nWantedBy=multi-user.target\n' >> /lib/systemd/system/${OE_T_CONFIG}.service"	
 sudo chmod 640 /lib/systemd/system/${OE_T_CONFIG}.service
 
 sleep 1
@@ -484,7 +491,7 @@ sudo systemctl start ${OE_T_CONFIG}.service
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">                               END OF SCRPIT       "
+echo -e "                               END OF SCRPIT       "
 echo -e "**************************************************************************\n"
 
 echo -e "Instalation was finished on $(date +"%Y.%m.%d %H:%M:%S")" 
@@ -492,7 +499,7 @@ echo -e "Instalation was finished on $(date +"%Y.%m.%d %H:%M:%S")"
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">	Service ${OE_P_CONFIG}.service status "
+echo -e "	SERVICE ${OE_P_CONFIG}.service status "
 echo -e "**************************************************************************\n"
 
 sudo systemctl status ${OE_P_CONFIG}.service
@@ -511,7 +518,7 @@ echo -e "Restart Odoo service: sudo systemctl restart $OE_P_CONFIG.service\n"
 sleep 1
 
 echo -e "\n**************************************************************************"
-echo -e ">	Service ${OE_T_CONFIG}.service status "
+echo -e "	Service ${OE_T_CONFIG}.service status "
 echo -e "**************************************************************************\n"
 
 sudo systemctl status ${OE_T_CONFIG}.service
