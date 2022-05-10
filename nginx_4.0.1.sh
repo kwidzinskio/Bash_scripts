@@ -1015,6 +1015,9 @@ if [[ "$NGINX_OUTPUT" == *"syntax is ok"*"successful" ]]; then
         echo -e "\n*** SWITCHING PROXY MODE TO TRUE FOR PROD AND TEST ***"
 	grep -q "proxy_mode = False" /etc/odootest-server.conf || sed -i 's+proxy_mode = False+proxy_mode = True+' /etc/odootest-server.conf
 	grep -q "proxy_mode = False" /etc/odooprod-server.conf || sed -i 's+proxy_mode = False+proxy_mode = True+' /etc/odooprod-server.conf
+	sudo systemctl restart nginx
+	sudo systemctl restart odooprod-server.service
+	sudo systemctl restart odootest-server.service
 	sleep 1
 	echo -e "\n*** PROXY MODE SWITCHED ON ***"
 fi
