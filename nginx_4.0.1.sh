@@ -976,7 +976,7 @@ elif [ $USER_OPTION == '2' ]; then
     	echo -e "*** CREATING SYMBOLIC LINK ***"
     	sudo ln -s /etc/nginx/sites-available/$ENV_T$DOMAIN_NAME.conf /etc/nginx/sites-enabled/$ENV_T$DOMAIN_NAME.conf
     	sleep 1
-    	echo -e "\n*** SYMBOLIC LINK CREATED ***"
+    	echo -e "\n*** SYMBOLIC LINK CREATED ***\n"
     	sleep 1
 	
 fi
@@ -1010,7 +1010,7 @@ sleep 1
 NGINX_OUTPUT=$(nginx -t 2>&1)
 echo $NGINX_OUTPUT
 
-if [[ "$NGINX_TEST" == *"syntax is ok"*"successful" ]]; then
+if [[ "$NGINX_OUTPUT" == *"syntax is ok"*"successful" ]]; then
 	sleep 1
         echo -e "\n*** SWITCHING PROXY MODE TO TRUE FOR PROD AND TEST ***"
 	grep -q "proxy_mode = False" /etc/odootest-server.conf || sed -i 's+proxy_mode = False+proxy_mode = True+' /etc/odootest-server.conf
