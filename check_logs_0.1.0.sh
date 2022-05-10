@@ -41,7 +41,7 @@ POSTGRES_DIR=/var/log/postgresql/postgresql-12-main.log
 NGINX_DIR=/var/log/nginx/error.log
 LETSENCRYPT_DIR=/var/log/letsencrypt/letsencrypt.log
 
-LOGS_FILENAME='log_errors'"$DATE"'.txt'
+LOGS_FILENAME='log_errors_'"$DATE"'.txt'
 USER_CHOICE=1
 LOGS_CHOICE=1
 UPDATE=y
@@ -111,14 +111,25 @@ print_errors () {
 			awk -v date="${START_DATE}" '$1==date && $4=="ERROR" {f=1} $4=="INFO" {f=0} f' $2 >> $LOGS_FILENAME
            	        START_DATE=$(date -I -d "$START_DATE + 1 day")
 		done
-	    elif [ $3 == 3 ]; then
-                awk ' /'"$5"'/ && $4=="ERROR" {f=1} $4=="INFO" {f=0} f' $2 >> $LOGS_FILENAME
-            elif [ $3 == 4 ]; then
+            elif [ $3 == 3 ]; then
 		while [ $START_DATE != $(date -I -d "$END_DATE + 1 day") ]; do 
                         echo "Generating logs from:" $START_DATE
 	                awk -v date="${START_DATE}" ' /'"$5"'/ && $1==date && $4=="ERROR" {f=1} $4=="INFO" {f=0} f ' $2 >> $LOGS_FILENAME
               		START_DATE=$(date -I -d "$START_DATE + 1 day")
                 done
+	    elif [ $3 == 4 ]; then
+                while [ $START_DATE != $(date -I -d "$END_DATE + 1 day") ]; do 
+                        echo "Generating logs from:" $START_DATE
+			NEXT_DATE=$(date -I -d "$START_DATE + 1 day")
+	                awk -v date="${START_DATE}" -v next_date="${NEXT_DATE}" ' $1==date {f=1} $1==next_date {f=0} f ' $2 >> $LOGS_FILENAME
+              		START_DATE=$(date -I -d "$START_DATE + 1 day")
+		done
+	    elif [ $3 == 5 ]; then
+                while [ $START_DATE != $(date -I -d "$END_DATE + 1 day") ]; do 
+                        echo "Generating logs from:" $START_DATE
+	                awk -v date="${START_DATE}" ' /'"$5"'/ && $1==date {f=1} $4=="INFO" {f=0} f ' $2 >> $LOGS_FILENAME
+              		START_DATE=$(date -I -d "$START_DATE + 1 day")
+		done		
 	    fi
 
         elif [ $1 == "fail2ban" ]; then
@@ -131,9 +142,20 @@ print_errors () {
                 	awk -v date="${START_DATE}" ' /fail2ban/ && $1==date {f=1} f ' $2 >> $LOGS_FILENAME
             		START_DATE=$(date -I -d "$START_DATE + 1 day")
 		done
-	    elif [ $3 == 3 ]; then
-                awk ' /'"$5"'/ ' $2 >> $LOGS_FILENAME
-            elif [ $3 == 4 ]; then
+            elif [ $3 == 3 ]; then
+                 while [ $START_DATE != $(date -I -d "$END_DATE + 1 day") ]; do 
+                        echo "Generating logs from:" $START_DATE
+			awk -v date="${START_DATE}" ' /'"$5"'/ && $1==date && /fail2ban/ {f=1} f' $2 >> $LOGS_FILENAME
+           		START_DATE=$(date -I -d "$START_DATE + 1 day")
+		 done
+	    elif [ $3 == 4 ]; then
+                 while [ $START_DATE != $(date -I -d "$END_DATE + 1 day") ]; do 
+                        echo "Generating logs from:" $START_DATE
+			NEXT_DATE=$(date -I -d "$START_DATE + 1 day")
+			awk -v date="${START_DATE}" -v next_date="${NEXT_DATE}" ' $1==date {f=1} $1==next_date {f=0} f ' $2 >> $LOGS_FILENAME
+           		START_DATE=$(date -I -d "$START_DATE + 1 day")
+		 done
+	    elif [ $3 == 5 ]; then
                  while [ $START_DATE != $(date -I -d "$END_DATE + 1 day") ]; do 
                         echo "Generating logs from:" $START_DATE
 			awk -v date="${START_DATE}" ' /'"$5"'/ && $1==date ' $2 >> $LOGS_FILENAME
@@ -155,8 +177,16 @@ print_errors () {
                 awk ' /'"$5"'/ && /ERROR/ ' $2 >> $LOGS_FILENAME
             elif [ $3 == 4 ]; then
                  while [ $START_DATE != $(date -I -d "$END_DATE + 1 day") ]; do 
-                         echo "Generating logs from:" $START_DATE                
-			 awk -v date="${START_DATE}" ' /'"$5"'/ && /ERROR/ && $1==date ' $2 >> $LOGS_FILENAME
+                         echo "Generating logs from:" $START_DATE   
+			 NEXT_DATE=$(date -I -d "$START_DATE + 1 day")             
+			 awk -v date="${START_DATE}" -v next_date="${NEXT_DATE}" ' $1==date {f=1} $1==next_date {f=0} f ' $2 >> $LOGS_FILENAME
+               		 START_DATE=$(date -I -d "$START_DATE + 1 day")
+                 done
+            elif [ $3 == 5 ]; then
+                 while [ $START_DATE != $(date -I -d "$END_DATE + 1 day") ]; do 
+                         echo "Generating logs from:" $START_DATE   
+			 NEXT_DATE=$(date -I -d "$START_DATE + 1 day")              
+			 awk -v date="${START_DATE}" -v next_date="${NEXT_DATE}" ' /'"$5"'/ && $1==date {f=1} $1==next_date {f=0} f ' $2 >> $LOGS_FILENAME
                		 START_DATE=$(date -I -d "$START_DATE + 1 day")
                  done
 	     fi
@@ -177,8 +207,19 @@ print_errors () {
             elif [ $3 == 4 ]; then
 		while [ $START_DATE != $(date -I -d "$END_DATE + 1 day") ]; do
 			echo "Generating logs from:" $START_DATE
+			NEXT_DATE=$(date -I -d "$START_DATE + 1 day")
                         date_start_modified=$(echo "$START_DATE" | sed 's+-+/+g')
-                	awk -v date="${date_start_modified}" ' /'"$5"'/ && /error/ && $1==date ' $2 >> $LOGS_FILENAME
+			next_date_modified=$(echo "$NEXT_DATE" | sed 's+-+/+g')
+                	awk -v date="${date_start_modified}"  -v next_date="${next_date_modified}" ' $1==date {f=1} $1==next_date {f=0} f ' $2 >> $LOGS_FILENAME
+			START_DATE=$(date -I -d "$START_DATE + 1 day")
+                done
+            elif [ $3 == 5 ]; then
+		while [ $START_DATE != $(date -I -d "$END_DATE + 1 day") ]; do
+			echo "Generating logs from:" $START_DATE
+			NEXT_DATE=$(date -I -d "$START_DATE + 1 day")
+                        date_start_modified=$(echo "$START_DATE" | sed 's+-+/+g')
+			next_date_modified=$(echo "$NEXT_DATE" | sed 's+-+/+g')
+                	awk -v date="${date_start_modified}"  -v next_date="${next_date_modified}" ' /'"$5"'/ && $1==date {f=1} $1==next_date {f=0} f ' $2 >> $LOGS_FILENAME
 			START_DATE=$(date -I -d "$START_DATE + 1 day")
                 done
             fi
@@ -198,7 +239,14 @@ print_errors () {
             elif [ $3 == 4 ]; then
                 while [ $START_DATE != $(date -I -d "$END_DATE + 1 day") ]; do 
                         echo "Generating logs from:" $START_DATE
-			awk -v date="${START_DATE}" ' /'"$5"'/ && /error/ && $1==date ' $2 >> $LOGS_FILENAME
+			awk -v date="${START_DATE}"  ' $1==date ' $2 >> $LOGS_FILENAME
+            		START_DATE=$(date -I -d "$START_DATE + 1 day")
+		done
+            elif [ $3 == 5 ]; then
+                while [ $START_DATE != $(date -I -d "$END_DATE + 1 day") ]; do 
+                        echo "Generating logs from:" $START_DATE
+			NEXT_DATE=$(date -I -d "$START_DATE + 1 day") 
+			awk -v date="${START_DATE}" ' /'"$5"'/ && $1==date  ' $2 >> $LOGS_FILENAME
             		START_DATE=$(date -I -d "$START_DATE + 1 day")
 		done
 	    fi
@@ -207,22 +255,24 @@ print_errors () {
             if [ $3 == 1 ]; then
                 while [ $START_DATE != $(date -I -d "$END_DATE + 1 day") ]; do 
                         echo "Generating logs from:" $START_DATE
-			awk ' /'"$START_DATE"'/ ' $2 >> $LOGS_FILENAME
+			NEXT_DATE=$(date -I -d "$START_DATE + 1 day")             
+			awk -v date="${START_DATE}" -v next_date="${NEXT_DATE}" ' $1==date {f=1} $1==next_date {f=0} f ' $2 >> $LOGS_FILENAME
 			START_DATE=$(date -I -d "$START_DATE + 1 day")
                 done
             elif [ $3 == 2 ]; then
                 awk ' /'"$5"'/  ' $2 >> $LOGS_FILENAME
-            elif [ $3 == 3 ]; then
+            elif [ $3 == 2 ]; then
 	        while [ $START_DATE != $(date -I -d "$END_DATE + 1 day") ]; do 
                         echo "Generating logs from:" $START_DATE
-		        awk ' /'"$5"'/ && /'"$START_DATE"'/ ' $2 >> $LOGS_FILENAME
+		        NEXT_DATE=$(date -I -d "$START_DATE + 1 day")             
+			awk -v date="${START_DATE}" -v next_date="${NEXT_DATE}" ' /'"$5"'/ && $1==date {f=1} $1==next_date {f=0} f ' $2 >> $LOGS_FILENAME
 			START_DATE=$(date -I -d "$START_DATE + 1 day")
                 done
             fi
 
         fi
 
-        echo "*** DONE ***"
+        echo -e "\n*** DONE ***"
 }
 
 
@@ -241,33 +291,39 @@ echo -e "\n* Choose logs option: "
 # known directories
 if [ "$USER_CHOICE" -ge 1 ] && [ "$USER_CHOICE" -le 8 ]; then
     
-    echo "1 - all logs with '$1' "
-    echo "2 - logs with '$1' at specified date"
-    echo "3 - logs with '$1' and specified phrase"
-    echo "4 - logs with '$1' at specified date and phrase"
-    echo -e "0 - back\n"
-	read -p 'Option: ' LOGS_CHOICE
-    echo " "
+	echo "1 - all logs with '$1' "
+    	echo "2 - logs with '$1' at specified date"
+    	echo "3 - logs with '$1' at specified date and phrase"
+	echo "4 - logs at specified date"
+	echo "5 - logs at specified date and specified phrase"
+    	echo -e "0 - back\n"
+    	read -p 'Option: ' LOGS_CHOICE
+    	echo " "
 
-    if [ "$LOGS_CHOICE" == 2 ] ; then
-	read -p "Input start date in YYYY-MM-DD format: " START_DATE
-	read -p "Input end date in YYYY-MM-DD format: " END_DATE
-    elif [ "$LOGS_CHOICE" == 3 ] ; then
-        read -p "Input phrase: " PHRASE
-    elif [ "$LOGS_CHOICE" == 4 ] ; then
-        read -p "Input start date in YYYY-MM-DD format: " START_DATE
-        read -p "Input end date in YYYY-MM-DD format: " END_DATE
-        read -p "Input phrase: " PHRASE
-    fi
+    	if [ "$LOGS_CHOICE" == 2 ] ; then
+		read -p "Input start date in YYYY-MM-DD format: " START_DATE
+		read -p "Input end date in YYYY-MM-DD format: " END_DATE
+    	elif [ "$LOGS_CHOICE" == 3 ] ; then
+		read -p "Input start date in YYYY-MM-DD format: " START_DATE
+        	read -p "Input end date in YYYY-MM-DD format: " END_DATE
+        	read -p "Input phrase: " PHRASE
+    	elif [ "$LOGS_CHOICE" == 4 ] ; then
+        	read -p "Input start date in YYYY-MM-DD format: " START_DATE
+        	read -p "Input end date in YYYY-MM-DD format: " END_DATE
+    	elif [ "$LOGS_CHOICE" == 5 ] ; then
+        	read -p "Input start date in YYYY-MM-DD format: " START_DATE
+        	read -p "Input end date in YYYY-MM-DD format: " END_DATE
+        	read -p "Input phrase: " PHRASE
+    	fi
 
 # custom directory
-else    
+elif [ "$USER_CHOICE" == 9 ]; then  
         		                
     echo "1 - logs at specified date"
     echo "2 - logs with specified phrase"
     echo "3 - logs at specified date and with phrase"
     echo -e "0 - back\n"
-	read -p 'Option: ' LOGS_CHOICE   
+    read -p 'Option: ' LOGS_CHOICE   
     echo " "
 
     if [ "$LOGS_CHOICE" == 1 ] ; then
@@ -297,17 +353,17 @@ while [ $USER_CHOICE != 0 ]; do
     echo " "
 	
         # choose log directory interface
-		echo -e "\n* Choose logfile directory: "
-		echo "1 - odooprod"
-		echo "2 - odootest"
+	echo -e "\n* Choose logfile directory: "
+	echo "1 - odooprod"
+	echo "2 - odootest"
         echo "3 - fail2ban"
         echo "4 - postresql"
         echo "5 - nginx"
         echo "6 - letsencrypt"
         echo "8 - all above"
         echo "9 - custom directory"
-		echo -e "0 - exit script\n"
-		read -p 'Option: ' USER_CHOICE
+	echo -e "0 - exit script\n"
+	read -p 'Option: ' USER_CHOICE
 
         # execute script
         if [ $USER_CHOICE != 0 ]; then
@@ -317,7 +373,7 @@ while [ $USER_CHOICE != 0 ]; do
 
                         choose_log_options ERROR
 
-                            if [ "$LOGS_CHOICE" -ge 1 ] && [ "$LOGS_CHOICE" -le 4 ]; then
+                            if [ "$LOGS_CHOICE" -ge 1 ] && [ "$LOGS_CHOICE" -le 5 ]; then
                                 
                                 # odooprod logs
 		                        if [ $USER_CHOICE == 1 ]; then
@@ -336,7 +392,7 @@ while [ $USER_CHOICE != 0 ]; do
                 
                         choose_log_options FAIL2BAN
                         
-                        if [ "$LOGS_CHOICE" -ge 1 ] && [ "$LOGS_CHOICE" -le 4 ]; then
+                        if [ "$LOGS_CHOICE" -ge 1 ] && [ "$LOGS_CHOICE" -le 5 ]; then
 	                    
                                    print_errors "fail2ban" $FAIL2BAN_DIR $LOGS_CHOICE $START_DATE $PHRASE $END_DATE    
                                
@@ -347,7 +403,7 @@ while [ $USER_CHOICE != 0 ]; do
             
                         choose_log_options ERROR
                    
-                        if [ "$LOGS_CHOICE" -ge 1 ] && [ "$LOGS_CHOICE" -le 4 ]; then
+                        if [ "$LOGS_CHOICE" -ge 1 ] && [ "$LOGS_CHOICE" -le 5 ]; then
 	                               
                                    print_errors "postgres" $POSTGRES_DIR $LOGS_CHOICE $START_DATE $PHRASE $END_DATE   
                                
@@ -358,7 +414,7 @@ while [ $USER_CHOICE != 0 ]; do
             
                         choose_log_options error
                    
-                        if [ "$LOGS_CHOICE" -ge 1 ] && [ "$LOGS_CHOICE" -le 4 ]; then
+                        if [ "$LOGS_CHOICE" -ge 1 ] && [ "$LOGS_CHOICE" -le 5 ]; then
 	                               
                                    print_errors "nginx" $NGINX_DIR $LOGS_CHOICE $START_DATE $PHRASE $END_DATE   
                                
@@ -369,7 +425,7 @@ while [ $USER_CHOICE != 0 ]; do
             
                         choose_log_options error
                    
-                        if [ "$LOGS_CHOICE" -ge 1 ] && [ "$LOGS_CHOICE" -le 4 ]; then
+                        if [ "$LOGS_CHOICE" -ge 1 ] && [ "$LOGS_CHOICE" -le 5 ]; then
 	                               
                                    print_errors "letsencrypt" $LETSENCRYPT_DIR $LOGS_CHOICE $START_DATE $PHRASE $END_DATE   
                                
@@ -380,13 +436,19 @@ while [ $USER_CHOICE != 0 ]; do
                 
                         choose_log_options error
                        
-                        if [ "$LOGS_CHOICE" -ge 1 ] && [ "$LOGS_CHOICE" -le 4 ]; then
+                        if [ "$LOGS_CHOICE" -ge 1 ] && [ "$LOGS_CHOICE" -le 5 ]; then
 	
+				   START_DATE_GLOBAL=$START_DATE
                                    print_errors "odooprod" $ODOOPROD_DIR $LOGS_CHOICE $START_DATE $PHRASE $END_DATE
+				   START_DATE=$START_DATE_GLOBAL
                                    print_errors "odootest" $ODOOTEST_DIR $LOGS_CHOICE $START_DATE $PHRASE $END_DATE
+				   START_DATE=$START_DATE_GLOBAL
                                    print_errors "fail2ban" $FAIL2BAN_DIR $LOGS_CHOICE $START_DATE $PHRASE $END_DATE     
-                                   print_errors "postgres" $POSTGRES_DIR $LOGS_CHOICE $START_DATE $PHRASE $END_DATE
+                                   START_DATE=$START_DATE_GLOBAL
+				   print_errors "postgres" $POSTGRES_DIR $LOGS_CHOICE $START_DATE $PHRASE $END_DATE
+				   START_DATE=$START_DATE_GLOBAL
                                    print_errors "nginx" $NGINX_DIR $LOGS_CHOICE $START_DATE $PHRASE $END_DATE
+				   START_DATE=$START_DATE_GLOBAL
                                    print_errors "letsencrypt" $LETSENCRYPT_DIR $LOGS_CHOICE $START_DATE $PHRASE $END_DATE 
                                
                         fi
@@ -398,7 +460,7 @@ while [ $USER_CHOICE != 0 ]; do
                         
                         if [ "$LOGS_CHOICE" -ge 1 ] && [ "$LOGS_CHOICE" -le 3 ]; then
                                    echo " "
-	                               read -p "Input custom directory: " CUSTOM_DIR
+	                           read -p "Input custom directory: " CUSTOM_DIR
                                    print_errors "custom_directory" $CUSTOM_DIR $LOGS_CHOICE $START_DATE $PHRASE $END_DATE       
                         fi
 
