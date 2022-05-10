@@ -180,7 +180,7 @@ else
     read -p "Nginx is not cofigured or is not working properly. Do you want to continue? (y/n) " NGINX_CONTINUE
 
     # continue
-    if [ $NGINX_CONTINUE == "y" || $NGINX_CONTINUE == "Y" ]; then
+    if [ $NGINX_CONTINUE == "y" ] || [ $NGINX_CONTINUE == "Y" ]; then
        
         installation
         
@@ -196,7 +196,7 @@ else
         echo -e "**************************************************************************\n"
 
         sleep 1
-        echo "Installation script ended unsuccessfuly $(date +"%Y.%m.%d %H:%M:%S")" 
+        echo -e "Installation script ended unsuccessfuly $(date +"%Y.%m.%d %H:%M:%S")\n" 
     fi
 
 fi
