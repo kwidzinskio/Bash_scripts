@@ -116,6 +116,8 @@ In order to perform Cloudflare certification prepare cert.pem and key.pem in the
 ## odoo15_install_0.1.1.sh
 
 The script performs task of **installing two separatelly Odoo's instances**
+
 There are created two python virtual environment
+
 Packages required by Odoo (python modules) are installing using pip based on file requirements.txt becomes from git sources
 
